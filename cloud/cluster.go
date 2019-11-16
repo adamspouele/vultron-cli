@@ -2,8 +2,10 @@ package cloud
 
 import (
 	"fmt"
+
+	"github.com/adamspouele/vultron-cli/naming/label"
+	"github.com/adamspouele/vultron-cli/naming/tag"
 	"github.com/digitalocean/godo"
-	"strconv"
 )
 
 // CreateCluster create a cluster in the cloud
@@ -14,23 +16,40 @@ func CreateCluster(name string, region string, serverSize int, clientSize int, s
 	fmt.Printf("> Start creating %v server nodes in %v cluster \n", clientSize, name)
 
 	for i := 0; i < serverSize; i++ {
-		nodeTags := []string{"vultron:test"}
-		newDroplet, err := CreateNode(name+"-"+strconv.Itoa(i), region, sshKey, "", nodeTags)
+		newDroplet, err := nodeCreationProcess(name, "server", i, region, sshKey)
 
 		if err != nil {
 			fmt.Printf("! Error creating server node %v \n", i)
 		} else {
-			fmt.Printf("> Node %v successfully created. \n", newDroplet.Name)
+			fmt.Printf("	> Node %v successfully created. \n", newDroplet.Name)
 		}
 	}
 
 	fmt.Printf("> Start creating %v client nodes in cluster %v \n", clientSize, name)
 
 	for k := 0; k < clientSize; k++ {
+		newDroplet, err := nodeCreationProcess(name, "client", k, region, sshKey)
 
+		if err != nil {
+			fmt.Printf("! Error creating client node %v \n", k)
+		} else {
+			fmt.Printf("	> Node %v successfully created. \n", newDroplet.Name)
+		}
 	}
 
 	fmt.Printf("> Cluster Created. \n")
+}
+
+/*
+nodeCreationProcess create a node in a cluster
+vultronResourceType can be of 2 value : [server, client]
+*/
+func nodeCreationProcess(clusterName string, nodeKind NodeKind, iteration int, region string, sshKey godo.DropletCreateSSHKey) (*godo.Droplet, error) {
+	nodeName := label.GenerateClientLabel(clusterName, iteration)
+
+	nodeTags := []string{tag.GetClusterResoureTag(), tag.GetPropTag(tag.TagPropNodeKind, nodeKind), "vultron:cluster:prop:name:" + clusterName}
+
+	return CreateNode(nodeName, region, sshKey, "#!/bin/bash \n cat << 'Vultron ecosystem' > /etc/vultron/README.txt", nodeTags)
 }
 
 // ListClusterNodes list cluster nodes

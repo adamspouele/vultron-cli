@@ -7,8 +7,8 @@ import (
 )
 
 // reference : https://developers.digitalocean.com/documentation/changelog/api-v2/new-size-slugs-for-droplet-plan-changes/
-
-var NodeType = map[string]string{
+// NodeSize is the different node sizes available
+var NodeSize = map[string]string{
 	"small-xl":  "s-1vcpu-1gb",  // s-1vcpu-1gb
 	"small-x":   "s-1vcpu-2gb",  // s-1vcpu-2gb
 	"small":     "s-2vcpu-2gb",  // s-2vcpu-2gb
@@ -20,12 +20,21 @@ var NodeType = map[string]string{
 	"large-xl":  "s-8vcpu-32gb", // s-16vcpu-64gb
 }
 
+// NodeKind define the kind of a node
+type NodeKind string
+
+const (
+	NodeKindStandalone NodeKind = "standalone"
+	NodeKindServer     NodeKind = "server"
+	NodeKindClient     NodeKind = "client"
+)
+
 // CreateNode create a new node with specific configuration
 func CreateNode(name string, region string, sshKey godo.DropletCreateSSHKey, userData string, tags []string) (*godo.Droplet, error) {
 	client, doContext, _ := GetDoClient()
 
 	createRequest := &godo.DropletCreateRequest{
-		Name:   "vultron-" + name,
+		Name:   name,
 		Region: region,
 		Size:   "s-1vcpu-1gb",
 		Image: godo.DropletCreateImage{
