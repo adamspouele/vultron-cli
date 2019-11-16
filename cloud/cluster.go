@@ -45,9 +45,9 @@ nodeCreationProcess create a node in a cluster
 vultronResourceType can be of 2 value : [server, client]
 */
 func nodeCreationProcess(clusterName string, nodeKind NodeKind, iteration int, region string, sshKey godo.DropletCreateSSHKey) (*godo.Droplet, error) {
-	nodeName := label.GenerateClientLabel(clusterName, iteration)
+	nodeName := label.GenerateClientLabel(label.Label(clusterName), iteration)
 
-	nodeTags := []string{tag.GetClusterResoureTag(), tag.GetPropTag(tag.TagPropNodeKind, nodeKind), "vultron:cluster:prop:name:" + clusterName}
+	nodeTags := []string{tag.GetClusterResoureTag(), tag.GetPropTag(tag.TagProp(tag.TagPropNodeKind), tag.TagProp(nodeKind)), "vultron:cluster:prop:name:" + clusterName}
 
 	return CreateNode(nodeName, region, sshKey, "#!/bin/bash \n cat << 'Vultron ecosystem' > /etc/vultron/README.txt", nodeTags)
 }

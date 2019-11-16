@@ -1,7 +1,5 @@
 package tag
 
-import "reflect"
-
 // Tag represent the tag string
 type Tag string
 
@@ -42,13 +40,13 @@ vultron:res:client
 //const PropTypes = map
 
 const (
-	tagPrefix   = "vultron:"
-	resourceTag = "res:"
-	propTag     = "prop:"
+	tagPrefix   Tag = "vultron:"
+	resourceTag Tag = "res:"
+	propTag     Tag = "prop:"
 )
 
 func bindPrefix(suffix Tag) string {
-	return tagPrefix + suffix
+	return string(tagPrefix + suffix)
 }
 
 func bindResourcePrefix(resourceName Tag) string {
@@ -56,7 +54,7 @@ func bindResourcePrefix(resourceName Tag) string {
 }
 
 func bindPropPrefix(propName TagProp, propValue TagProp) string {
-	return bindPrefix(reflect.ValueOf(propTag) + propName + ":" + propValue)
+	return bindPrefix(propTag + Tag(propName) + ":" + Tag(propValue))
 }
 
 // GetClusterResoureTag get cluster resource tag
@@ -65,6 +63,6 @@ func GetClusterResoureTag() string {
 }
 
 // GetPropTag get property tag
-func GetPropTag(propName TagProp, propValue string) string {
+func GetPropTag(propName TagProp, propValue TagProp) string {
 	return bindPropPrefix(propName, propValue)
 }
