@@ -41,6 +41,7 @@ vultron:res:client
 
 const (
 	tagPrefix   Tag = "vultron:"
+	kindTag     Tag = "kind:"
 	resourceTag Tag = "res:"
 	propTag     Tag = "prop:"
 )
@@ -50,6 +51,10 @@ func bindPrefix(suffix Tag) string {
 }
 
 func bindResourcePrefix(resourceName Tag) string {
+	return bindPrefix(kindTag + resourceName)
+}
+
+func bindKindPrefix(resourceName Tag) string {
 	return bindPrefix(resourceTag + resourceName)
 }
 
@@ -57,9 +62,24 @@ func bindPropPrefix(propName TagProp, propValue TagProp) string {
 	return bindPrefix(propTag + Tag(propName) + ":" + Tag(propValue))
 }
 
-// GetClusterResoureTag get cluster resource tag
-func GetClusterResoureTag() string {
-	return bindResourcePrefix("cluster")
+// GetClusterKindTag get cluster kind tag
+func GetClusterKindTag() string {
+	return bindKindPrefix("cluster")
+}
+
+// GetStandaloneKindTag get standalone kind tag
+func GetStandaloneKindTag() string {
+	return bindKindPrefix("standalone")
+}
+
+// GetServerResourceTag get server resource tag
+func GetServerResourceTag() string {
+	return bindResourcePrefix("server")
+}
+
+// GetClientResourceTag get client resource tag
+func GetClientResourceTag() string {
+	return bindResourcePrefix("client")
 }
 
 // GetPropTag get property tag

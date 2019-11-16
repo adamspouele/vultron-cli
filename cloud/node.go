@@ -25,8 +25,15 @@ type NodeKind string
 
 const (
 	NodeKindStandalone NodeKind = "standalone"
-	NodeKindServer     NodeKind = "server"
-	NodeKindClient     NodeKind = "client"
+	NodeKindCluster    NodeKind = "cluster"
+)
+
+// NodeRes define the type of resource of a node
+type NodeRes string
+
+const (
+	NodeResServer NodeRes = "server"
+	NodeResClient NodeRes = "client"
 )
 
 // CreateNode create a new node with specific configuration
@@ -53,7 +60,7 @@ func CreateNode(name string, region string, sshKey godo.DropletCreateSSHKey, use
 	newDroplet, _, err := client.Droplets.Create(doContext, createRequest)
 
 	if err != nil {
-		fmt.Printf("! Something bad happened: %s\n\n", err)
+		fmt.Println("! Something bad happened: %s\n\n", err)
 	}
 
 	return newDroplet, err

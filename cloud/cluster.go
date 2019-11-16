@@ -2,6 +2,9 @@ package cloud
 
 import (
 	"fmt"
+	"log"
+
+	"github.com/adamspouele/vultron-cli/cloud"
 
 	"github.com/adamspouele/vultron-cli/naming/label"
 	"github.com/adamspouele/vultron-cli/naming/tag"
@@ -11,45 +14,64 @@ import (
 // CreateCluster create a cluster in the cloud
 func CreateCluster(name string, region string, serverSize int, clientSize int, sshKey godo.DropletCreateSSHKey) {
 
-	fmt.Printf("> Plan deployment of %v server nodes \n", serverSize)
+	fmt.Println("> Plan deployment of %v server nodes", serverSize)
 
-	fmt.Printf("> Start creating %v server nodes in %v cluster \n", clientSize, name)
+	fmt.Println("> Start creating %v server nodes in %v cluster", clientSize, name)
 
 	for i := 0; i < serverSize; i++ {
-		newDroplet, err := nodeCreationProcess(name, "server", i, region, sshKey)
+		newDroplet, err := nodeCreationProcess(name, , cloud.NodeKindCluster, cloud.NodeResServer, i, region, sshKey)
 
 		if err != nil {
-			fmt.Printf("! Error creating server node %v \n", i)
+			log.Panicln("! Error creating server node %v", i)
 		} else {
-			fmt.Printf("	> Node %v successfully created. \n", newDroplet.Name)
+			fmt.Println("	> Node %v successfully created.", newDroplet.Name)
 		}
 	}
 
-	fmt.Printf("> Start creating %v client nodes in cluster %v \n", clientSize, name)
+	fmt.Println("> Start creating %v client nodes in cluster %v", clientSize, name)
 
 	for k := 0; k < clientSize; k++ {
-		newDroplet, err := nodeCreationProcess(name, "client", k, region, sshKey)
+		newDroplet, err := nodeCreationProcess(name, cloud.NodeKindCluster, cloud.NodeResClient, k, region, sshKey)
 
 		if err != nil {
-			fmt.Printf("! Error creating client node %v \n", k)
+			log.Panicln("! Error creating client node %v", k)
 		} else {
-			fmt.Printf("	> Node %v successfully created. \n", newDroplet.Name)
+			fmt.Println("	> Node %v successfully created.", newDroplet.Name)
 		}
 	}
 
-	fmt.Printf("> Cluster Created. \n")
+	fmt.Println("> Cluster Created.")
 }
 
 /*
 nodeCreationProcess create a node in a cluster
-vultronResourceType can be of 2 value : [server, client]
+NodeKind can be of 2 value : [standalone, cluster]
+NodeRes can be of 2 value : [server, client]
 */
-func nodeCreationProcess(clusterName string, nodeKind NodeKind, iteration int, region string, sshKey godo.DropletCreateSSHKey) (*godo.Droplet, error) {
+func nodeCreationProcess(clusterName string, nodeKind NodeKind, nodeRes NodeRes, iteration int, region string, sshKey godo.DropletCreateSSHKey) (*godo.Droplet, error) {
 	nodeName := label.GenerateClientLabel(label.Label(clusterName), iteration)
 
-	nodeTags := []string{tag.GetClusterResoureTag(), tag.GetPropTag(tag.TagProp(tag.TagPropNodeKind), tag.TagProp(nodeKind)), "vultron:cluster:prop:name:" + clusterName}
+	var currentNodeKind NodeKind
+	if nodeKind == "cluster" {
+		currentNodeKind := tag.GetClusterKindTag()
+	} else {
+		currentNodeKind := tag.GetStandaloneKindTag()
+	}
 
-	return CreateNode(nodeName, region, sshKey, "#!/bin/bash \n cat << 'Vultron ecosystem' > /etc/vultron/README.txt", nodeTags)
+	var currentNodeRes NodeRes
+	if nodeKind == "server" {
+		currentNodeRes := tag.GetServerResourceTag()
+	} else {
+		currentNodeRes := tag.GetClientResourceTag()
+	}
+
+	nodeTags := []string{
+		string(currentNodeKind),
+		string(currentNodeRes),
+		tag.GetPropTag("cluster-name", "clusterName"),
+	}
+
+	return CreateNode(nodeName, region, sshKey, "#!/bin/bash cat << 'Vultron ecosystem' > /etc/vultron/README.txt", nodeTags)
 }
 
 // ListClusterNodes list cluster nodes
@@ -61,7 +83,7 @@ func ListClusterNodes(clusterTag string) ([]godo.Droplet, error) {
 	}
 
 	if err != nil {
-		fmt.Printf("error authenticating")
+		log.Fatalln("! Error authenticating")
 	}
 
 	droplets, _, err := client.Droplets.ListByTag(ctx, clusterTag, opt)
@@ -75,11 +97,11 @@ func ExplainCluster(clusterTag string) {
 	droplets, err := ListClusterNodes(clusterTag)
 
 	if err != nil {
-		fmt.Printf("! Error while explaining cluster %v \n", clusterTag)
+		log.Fatalln("! Error while explaining cluster %v", clusterTag)
 	}
 
 	for i := 0; i < len(droplets); i++ {
-		fmt.Printf("# %v : ID='%v' status='%v' name='%v' region='%v' memory='%v' vcpus='%v' image='%v' disk='%v' size='%v' created='%v' \n",
+		fmt.Println("# %v : ID='%v' status='%v' name='%v' region='%v' memory='%v' vcpus='%v' image='%v' disk='%v' size='%v' created='%v'",
 			i, droplets[i].ID, droplets[i].Status, droplets[i].Name, droplets[i].Region.Slug, droplets[i].Memory,
 			droplets[i].Vcpus, droplets[i].Image.Slug, droplets[i].Disk, droplets[i].Size.Slug, droplets[i].Created)
 	}
@@ -88,19 +110,17 @@ func ExplainCluster(clusterTag string) {
 // DeleteCluster delete a cluster by removing all cluster's nodes
 func DeleteCluster(clusterTag string) (*godo.Response, error) {
 
-	fmt.Printf("> Delete cluster %v \n", clusterTag)
+	fmt.Println("> Delete cluster %v", clusterTag)
 
 	client, ctx, _ := GetDoClient()
 
 	response, err := client.Droplets.DeleteByTag(ctx, clusterTag)
 
-	fmt.Printf("%v", response.Response.Status)
-
 	if err != nil {
-		fmt.Printf("! Error deleting cluster [%v] : %v \n", clusterTag, err)
+		log.Fatalln("! Error deleting cluster [%v] : %v", clusterTag, err)
 	}
 
-	fmt.Printf("Done. \n")
+	fmt.Println("Done.")
 
 	return response, err
 }

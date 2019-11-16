@@ -17,7 +17,7 @@ const (
 // Handle execute the CLI
 func Handle() {
 
-	fmt.Printf(os.Getenv(do_token_env_var))
+	fmt.Println(os.Getenv(do_token_env_var))
 
 	app := cli.NewApp()
 	app.Name = "Vultron Cli"
@@ -123,9 +123,9 @@ func Handle() {
 						name := c.String("name")
 
 						if len(name) > 0 {
-							cloud.ExplainCluster(name)
+							cloud.DeleteCluster(name)
 						} else {
-							log.Fatalln("! You must provide a cluster name with option 'name' to get a explaination.")
+							log.Fatalln("! You must provide a cluster name with option 'name'.")
 						}
 
 						return nil
