@@ -61,22 +61,29 @@ func Handle() {
 			Usage: "Create	a resource from a file or interactively",
 			Subcommands: []*cli.Command{
 				{
-					Name:  "cluster",
-					Usage: "create a cluster",
+					Name:    "cluster",
+					Usage:   "create a cluster",
+					Aliases: []string{"cl"},
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name:  "name",
-							Value: "",
-							Usage: "The cluster name",
+							Name:    "name",
+							Value:   "",
+							Aliases: []string{"n"},
+							Usage:   "The cluster name",
+						},
+						&cli.StringFlag{
+							Name:  "region",
+							Value: "ams3",
+							Usage: "The cluster's region",
 						},
 						&cli.IntFlag{
 							Name:  "serverSize",
-							Value: 0,
+							Value: 1,
 							Usage: "The server node size",
 						},
 						&cli.IntFlag{
 							Name:  "clientSize",
-							Value: 0,
+							Value: 1,
 							Usage: "The client node size",
 						},
 						&cli.StringFlag{
@@ -87,16 +94,20 @@ func Handle() {
 					},
 					Action: func(c *cli.Context) error {
 
-						sshKey := godo.DropletCreateSSHKey{
-							Fingerprint: c.String("sshKey"),
-						}
+						if len(c.String("name")) > 4 && len(c.String("sshKey")) > 10 {
+							sshKey := godo.DropletCreateSSHKey{
+								Fingerprint: c.String("sshKey"),
+							}
 
-						cloud.CreateCluster(c.String("name"),
-							c.String("region"),
-							c.Int("serverSize"),
-							c.Int("clientSize"),
-							sshKey,
-						)
+							cloud.CreateCluster(c.String("name"),
+								c.String("region"),
+								c.Int("serverSize"),
+								c.Int("clientSize"),
+								sshKey,
+							)
+						} else {
+							log.Fatalln("You must provide at least the name of the cluster which have a length superior to 4")
+						}
 
 						return nil
 					},
@@ -110,13 +121,15 @@ func Handle() {
 			Usage:    "Delete resources from a file or interactively",
 			Subcommands: []*cli.Command{
 				{
-					Name:  "cluster",
-					Usage: "delete a cluster",
+					Name:    "cluster",
+					Usage:   "delete a cluster",
+					Aliases: []string{"cl"},
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name:  "name",
-							Value: "",
-							Usage: "The cluster name",
+							Name:    "name",
+							Value:   "",
+							Aliases: []string{"n"},
+							Usage:   "The cluster name",
 						},
 					},
 					Action: func(c *cli.Context) error {

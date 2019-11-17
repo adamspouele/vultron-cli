@@ -20,7 +20,7 @@ var NodeSize = map[string]string{
 	"large-xl":  "s-8vcpu-32gb", // s-16vcpu-64gb
 }
 
-// NodeKind define the kind of a node
+// NodeKind define the kind of node
 type NodeKind string
 
 const (
