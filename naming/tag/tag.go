@@ -62,14 +62,19 @@ func bindPropPrefix(propName TagProp, propValue TagProp) string {
 	return bindPrefix(propTag + Tag(propName) + ":" + Tag(propValue))
 }
 
-// GetClusterKindTag get cluster kind tag
-func GetClusterKindTag() string {
-	return bindKindPrefix("cluster")
+// GetConsulKindTag get consul kind tag
+func GetConsulKindTag() string {
+	return bindKindPrefix("consul")
 }
 
-// GetStandaloneKindTag get standalone kind tag
-func GetStandaloneKindTag() string {
-	return bindKindPrefix("standalone")
+// GetNomadKindTag get nomad kind tag
+func GetNomadKindTag() string {
+	return bindKindPrefix("nomad")
+}
+
+// GetClientKindTag get client kind tag
+func GetClientKindTag() string {
+	return bindKindPrefix("client")
 }
 
 // GetServerResourceTag get server resource tag

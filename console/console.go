@@ -72,24 +72,34 @@ func Handle() {
 							Usage:   "The cluster name",
 						},
 						&cli.StringFlag{
-							Name:  "region",
-							Value: "ams3",
-							Usage: "The cluster's region",
+							Name:    "region",
+							Value:   "ams3",
+							Aliases: []string{"r"},
+							Usage:   "The cluster's region",
 						},
 						&cli.IntFlag{
-							Name:  "serverSize",
-							Value: 1,
-							Usage: "The server node size",
+							Name:    "consul-server-size",
+							Value:   1,
+							Aliases: []string{"css"},
+							Usage:   "The consul server nodes size",
 						},
 						&cli.IntFlag{
-							Name:  "clientSize",
-							Value: 1,
-							Usage: "The client node size",
+							Name:    "nomad-server-size",
+							Value:   1,
+							Aliases: []string{"nss"},
+							Usage:   "The nomad server nodes size",
+						},
+						&cli.IntFlag{
+							Name:    "client-size",
+							Value:   1,
+							Aliases: []string{"cs"},
+							Usage:   "The client nodes size",
 						},
 						&cli.StringFlag{
-							Name:  "sshKey",
-							Value: "",
-							Usage: "The ssh Fingerprint",
+							Name:    "sshKey",
+							Value:   "",
+							Aliases: []string{"sh"},
+							Usage:   "The ssh Fingerprint",
 						},
 					},
 					Action: func(c *cli.Context) error {
@@ -101,12 +111,13 @@ func Handle() {
 
 							cloud.CreateCluster(c.String("name"),
 								c.String("region"),
-								c.Int("serverSize"),
-								c.Int("clientSize"),
+								c.Int("consul-server-size"),
+								c.Int("nomad-server-size"),
+								c.Int("client-size"),
 								sshKey,
 							)
 						} else {
-							log.Fatalln("You must provide at least the name of the cluster which have a length superior to 4")
+							log.Fatalln("You must provide at least the name of the cluster which have a length superior to 4 and an sshKey.")
 						}
 
 						return nil

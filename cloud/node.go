@@ -24,8 +24,9 @@ var NodeSize = map[string]string{
 type NodeKind string
 
 const (
-	NodeKindStandalone NodeKind = "standalone"
-	NodeKindCluster    NodeKind = "cluster"
+	NodeKindConsul NodeKind = "consul"
+	NodeKindNomad  NodeKind = "nomad"
+	NodeKindClient NodeKind = "client"
 )
 
 // NodeRes define the type of resource of a node

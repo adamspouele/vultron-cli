@@ -17,14 +17,13 @@ All tags start by 'vultron:' prefix which is the first layer of a vultron tag. T
 The second layer of a tag is 'kind:' or 'res:'
 'kind:' identifies in what the node is working in, below are the possible values :
 
-- cluster
-- standalone
+- consul
+- nomad
+- client
 
 examples : 
 
 * vultron:kind:cluster
-* vultron:kind:standalone
-
 
 'res:' identifies the type of resource the node is   of, below are the possible values :
 
