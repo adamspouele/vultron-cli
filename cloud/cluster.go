@@ -25,13 +25,13 @@ func CreateCluster(name string, region string, consulServerSize int, nomadServer
 	// the cluster ID
 	clusterID := generateUniqueClusterID()
 
-	fmt.Printf("> Start creating %v consul server nodes in %v cluster\n ", clientSize, name)
+	fmt.Printf("> Start creating %v consul server nodes in %v cluster\n ", consulServerSize, name)
 
 	// generate 16 bytes key
 	encryptKey := generateClusterEncryptKey()
 
 	for i := 0; i < consulServerSize; i++ {
-		newDroplet, err := nodeCreationProcess(name, clusterID, encryptKey, NodeKindConsul, NodeResServer, consulServerSize, i, region, sshKey)
+		newDroplet, err := nodeCreationProcess(name, clusterID, encryptKey, NodeKindServer, NodeResConsul, consulServerSize, i, region, sshKey)
 
 		if err != nil {
 			log.Fatalln("! Error creating consul server node %v", i)
@@ -40,13 +40,13 @@ func CreateCluster(name string, region string, consulServerSize int, nomadServer
 		}
 	}
 
-	fmt.Printf("> Start creating %v nomad server nodes in %v cluster\n ", clientSize, name)
+	fmt.Printf("> Start creating %v nomad server nodes in %v cluster\n ", nomadServerSize, name)
 
-	for i := 0; i < nomadServerSize; i++ {
-		newDroplet, err := nodeCreationProcess(name, clusterID, encryptKey, NodeKindNomad, NodeResServer, nomadServerSize, i, region, sshKey)
+	for x := 0; x < nomadServerSize; x++ {
+		newDroplet, err := nodeCreationProcess(name, clusterID, encryptKey, NodeKindServer, NodeResNomad, nomadServerSize, x, region, sshKey)
 
 		if err != nil {
-			log.Fatalln("! Error creating nomad server node %v", i)
+			log.Fatalln("! Error creating nomad server node %v", x)
 		} else {
 			fmt.Printf("	+ nomad node %v successfully created\n", newDroplet.Name)
 		}
@@ -74,33 +74,32 @@ func generateUniqueClusterID() string {
 
 /*
 nodeCreationProcess create a node in a cluster
-NodeKind can be of 2 value : [standalone, cluster]
+NodeKind can be of 3 value : [consul, nomad,client]
 NodeRes can be of 2 value : [server, client]
 */
 func nodeCreationProcess(clusterName string, clusterID string, encryptKey string, nodeKind NodeKind, nodeRes NodeRes, nodeSize int, iteration int, region string, sshKey godo.DropletCreateSSHKey) (*godo.Droplet, error) {
 	nodeName := label.GenerateClientLabel(label.Label(clusterName), iteration)
 
-	nodeTags := getNodeTags(clusterName, clusterID, getNodeKind(nodeKind), getNodeRes(nodeRes))
+	nodeTags := getNodeTags(clusterName, clusterID, nodeKind, nodeRes)
 
-	// send cluster servers ID to consul to allow him to make the cluster network
-	clusterServerIDTag := tag.GetPropTag("server-id", tag.TagProp(clusterID))
+	// use cluster cluster ID to recognize all consul nodes to make the cluster network
+	clusterConsulResTag := tag.GetPropTag(tag.TagProp(NodeResConsul), tag.TagProp(clusterID))
+
 	userData := ""
-	if string(nodeKind) == "consul" {
-		userData = consul.GetConsulServerInstallScript(clusterName, encryptKey, clusterServerIDTag, region, nodeSize)
-	} else if string(nodeKind) == "nomad" {
-		userData = nomad.GetNomadServerInstallScript(clusterName, encryptKey, clusterServerIDTag, region, nodeSize)
+	if string(nodeRes) == "consul" {
+		userData = consul.GetConsulServerInstallScript(clusterName, encryptKey, clusterConsulResTag, region, nodeSize)
+	} else if string(nodeRes) == "nomad" {
+		userData = nomad.GetNomadServerInstallScript(clusterName, encryptKey, clusterConsulResTag, region, nodeSize)
 	} else {
-		userData = client.GetClientInstallScript(clusterName, encryptKey, clusterServerIDTag, region)
+		userData = nomad.GetNomadClientInstallScript(clusterName, encryptKey, clusterConsulResTag, region)
 	}
-
-	// "#!/bin/bash \n  mkdir -p /etc/vultron;\n  cat << 'Vultron ecosystem' > /etc/vultron/README.txt"
 
 	return CreateNode(nodeName+"-"+string(nodeKind)+"-"+string(nodeRes)+strconv.Itoa(iteration), region, sshKey, userData, nodeTags)
 }
 
 // generateClusterEncryptKey generate a 16 bytes base64 encoded key asked by Consul Gossip Encryption to secure cluster agent communications
 func generateClusterEncryptKey() string {
-	key := make([]byte, 64)
+	key := make([]byte, 16)
 
 	// generate 16 bytes key
 	_, err := rand.Read(key)
@@ -115,19 +114,19 @@ func generateClusterEncryptKey() string {
 	return sEnc
 }
 
-func getNodeKind(nodeKind NodeKind) NodeKind {
-	if nodeKind == "consul" {
-		return NodeKind(tag.GetConsulKindTag())
-	} else if nodeKind == "nomad" {
-		return NodeKind(tag.GetNomadKindTag())
+func getNodeKindTag(nodeKind NodeKind) NodeKind {
+	if nodeKind == "server" {
+		return NodeKind(tag.GetServerKindTag())
 	}
 
 	return NodeKind(tag.GetClientKindTag())
 }
 
-func getNodeRes(nodeRes NodeRes) NodeRes {
-	if nodeRes == "server" {
-		return NodeRes(tag.GetServerResourceTag())
+func getNodeResTag(nodeRes NodeRes) NodeRes {
+	if nodeRes == "consul" {
+		return NodeRes(tag.GetConsulResourceTag())
+	} else if nodeRes == "nomad" {
+		return NodeRes(tag.GetNomadResourceTag())
 	}
 
 	return NodeRes(tag.GetClientResourceTag())
@@ -136,16 +135,17 @@ func getNodeRes(nodeRes NodeRes) NodeRes {
 func getNodeTags(clusterName string, clusterID string, nodeKind NodeKind, nodeRes NodeRes) []string {
 
 	tags := []string{
-		string(nodeKind),
-		string(nodeRes),
-		tag.GetPropTag("cluster-id", tag.TagProp(clusterID)),
+		string(getNodeKindTag(nodeKind)),
+		string(getNodeResTag(nodeRes)),
 		tag.GetPropTag("cluster-name", tag.TagProp(clusterName)),
 	}
 
-	if string(nodeRes) == tag.GetServerResourceTag() {
-		tags = append(tags, tag.GetPropTag("server-id", tag.TagProp(clusterID)))
+	tags = append(tags, tag.GetPropTag(tag.TagProp(nodeRes), tag.TagProp(clusterID)))
+
+	if nodeKind == NodeKindServer {
+		tags = append(tags, tag.GetPropTag("server", tag.TagProp(clusterID)))
 	} else {
-		tags = append(tags, tag.GetPropTag("client-id", tag.TagProp(clusterID)))
+		tags = append(tags, tag.GetPropTag("client", tag.TagProp(clusterID)))
 	}
 
 	return tags

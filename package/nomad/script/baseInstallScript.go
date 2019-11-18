@@ -3,11 +3,11 @@ package nomad
 import consul "github.com/adamspouele/vultron-cli/package/consul/script"
 
 // GetNomadBaseInstallScript return the nomad installation script
-func GetNomadBaseInstallScript(datacenterName string, encryptKey string, clusterServersTag string, region string) string {
-	return consul.GetConsulClientInstallScript(datacenterName, encryptKey, clusterServersTag, region) + `
+func GetNomadBaseInstallScript(datacenterName string, encryptKey string, clusterConsulResTag string, region string) string {
+	return consul.GetConsulClientInstallScript(datacenterName, encryptKey, clusterConsulResTag, region) + `
 
 echo "Download Nomad"
-export NOMAD_VERSION="0.9.0"
+export NOMAD_VERSION="0.10.1"
 curl --silent --remote-name https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip
 
 echo "Intall Nomad"

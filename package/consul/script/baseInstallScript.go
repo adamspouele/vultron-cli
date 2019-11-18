@@ -3,7 +3,7 @@ package consul
 import client "github.com/adamspouele/vultron-cli/package/script"
 
 // GetConsulBaseInstallScript return the consul installation script
-func GetConsulBaseInstallScript(datacenterName string, encryptKey string, clusterServersTag string, region string) string {
+func GetConsulBaseInstallScript(datacenterName string, encryptKey string, clusterConsulResTag string, region string) string {
 	return client.GetBaseInstallScript() + `
 
 # reference : https://learn.hashicorp.com/consul/datacenter-deploy/deployment-guide
@@ -73,7 +73,7 @@ log_level = "DEBUG"
 enable_syslog = true
 encrypt = "` + encryptKey + `"
 bind_addr = "$(curl http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address)"
-retry_join = ["provider=digitalocean region=` + region + ` tag_name=` + clusterServersTag + ` api_token=a672e9dc039db44186f3b9e1bd4a2ac0f4c44844a037b22d2e51770cc5164dc7"]
+retry_join = ["provider=digitalocean region=` + region + ` tag_name=` + clusterConsulResTag + ` api_token=a672e9dc039db44186f3b9e1bd4a2ac0f4c44844a037b22d2e51770cc5164dc7"]
 
 performance {
   raft_multiplier = 1

@@ -51,25 +51,20 @@ func bindPrefix(suffix Tag) string {
 }
 
 func bindResourcePrefix(resourceName Tag) string {
-	return bindPrefix(kindTag + resourceName)
+	return bindPrefix(resourceTag + resourceName)
 }
 
 func bindKindPrefix(resourceName Tag) string {
-	return bindPrefix(resourceTag + resourceName)
+	return bindPrefix(kindTag + resourceName)
 }
 
 func bindPropPrefix(propName TagProp, propValue TagProp) string {
 	return bindPrefix(propTag + Tag(propName) + ":" + Tag(propValue))
 }
 
-// GetConsulKindTag get consul kind tag
-func GetConsulKindTag() string {
-	return bindKindPrefix("consul")
-}
-
-// GetNomadKindTag get nomad kind tag
-func GetNomadKindTag() string {
-	return bindKindPrefix("nomad")
+// GetServerKindTag get server kind tag
+func GetServerKindTag() string {
+	return bindKindPrefix("server")
 }
 
 // GetClientKindTag get client kind tag
@@ -77,9 +72,14 @@ func GetClientKindTag() string {
 	return bindKindPrefix("client")
 }
 
-// GetServerResourceTag get server resource tag
-func GetServerResourceTag() string {
-	return bindResourcePrefix("server")
+// GetConsulResourceTag get consul resource tag
+func GetConsulResourceTag() string {
+	return bindResourcePrefix("consul")
+}
+
+// GetNomadResourceTag get nomad resource tag
+func GetNomadResourceTag() string {
+	return bindResourcePrefix("nomad")
 }
 
 // GetClientResourceTag get client resource tag

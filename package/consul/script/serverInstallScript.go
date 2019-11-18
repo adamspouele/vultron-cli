@@ -3,8 +3,8 @@ package consul
 import "strconv"
 
 // GetConsulServerInstallScript return the consul installation script
-func GetConsulServerInstallScript(datacenterName string, encryptKey string, clusterServersTag string, region string, serverSize int) string {
-	return GetConsulBaseInstallScript(datacenterName, encryptKey, clusterServersTag, region) + `
+func GetConsulServerInstallScript(datacenterName string, encryptKey string, clusterConsulResTag string, region string, serverSize int) string {
+	return GetConsulBaseInstallScript(datacenterName, encryptKey, clusterConsulResTag, region) + `
 echo "configure server.hcl"
 
 cat <<EOF >/etc/consul.d/server.hcl

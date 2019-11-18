@@ -3,16 +3,22 @@ package nomad
 import "strconv"
 
 // GetConsulServerInstallScript return the consul installation script
-func GetNomadServerInstallScript(datacenterName string, encryptKey string, clusterServersTag string, region string, nomadServerSize int) string {
-	return GetNomadBaseInstallScript(datacenterName, encryptKey, clusterServersTag, region) + `
+func GetNomadServerInstallScript(datacenterName string, encryptKey string, clusterConsulResTag string, region string, nomadServerSize int) string {
+	return GetNomadBaseInstallScript(datacenterName, encryptKey, clusterConsulResTag, region) + `
 
 echo "Server configuration"
 
 echo "configure server.hcl"
 
 cat << EOF > /etc/nomad.d/server.hcl
-enabled = true
-bootstrap_expect = `+strconv.Itoa(nomadServerSize)+`
+# Increase log verbosity
+log_level = "DEBUG"
+
+# Enable the server
+server {
+	enabled = true
+	bootstrap_expect = ` + strconv.Itoa(nomadServerSize) + `
+}
 EOF
 
 echo "Start Nomad server service"

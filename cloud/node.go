@@ -24,8 +24,7 @@ var NodeSize = map[string]string{
 type NodeKind string
 
 const (
-	NodeKindConsul NodeKind = "consul"
-	NodeKindNomad  NodeKind = "nomad"
+	NodeKindServer NodeKind = "server"
 	NodeKindClient NodeKind = "client"
 )
 
@@ -33,7 +32,8 @@ const (
 type NodeRes string
 
 const (
-	NodeResServer NodeRes = "server"
+	NodeResConsul NodeRes = "consul"
+	NodeResNomad  NodeRes = "nomad"
 	NodeResClient NodeRes = "client"
 )
 
